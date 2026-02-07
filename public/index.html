@@ -3,20 +3,19 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>YouTube MP3 - Grátis</title>
+    <title>YouTube MP3 Pro</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <style>
         :root {
             --primary: #ff0000;
-            --bg: #0a0a0a;
-            --card: #161616;
+            --bg: #0f0f0f;
+            --card: #1a1a1a;
             --text: #ffffff;
-            --success: #27ae60;
+            --success: #2ecc71;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-        /* CENTRALIZAÇÃO TOTAL */
         body {
             font-family: -apple-system, system-ui, sans-serif;
             background-color: var(--bg);
@@ -31,35 +30,32 @@
 
         .container {
             width: 100%;
-            max-width: 420px;
+            max-width: 400px;
             background: var(--card);
-            padding: 35px 25px;
+            padding: 30px;
             border-radius: 20px;
             text-align: center;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
-            border: 1px solid #222;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid #333;
         }
 
-        h1 { font-size: 1.6rem; margin-bottom: 8px; }
-        p { color: #888; font-size: 0.9rem; margin-bottom: 25px; }
-
-        .input-group { position: relative; margin-bottom: 20px; }
+        .input-group { position: relative; margin: 20px 0; }
         
         input {
             width: 100%;
             height: 55px;
             padding: 0 15px 0 45px;
-            background: #222;
+            background: #252525;
             border: 2px solid #333;
             border-radius: 12px;
             color: white;
-            font-size: 16px; /* Evita zoom no iPhone */
+            font-size: 16px;
             outline: none;
         }
 
         input:focus { border-color: var(--primary); }
 
-        .fa-link { position: absolute; left: 15px; top: 18px; color: #555; }
+        .fa-link { position: absolute; left: 15px; top: 18px; color: #777; }
 
         button {
             width: 100%;
@@ -77,13 +73,12 @@
             gap: 10px;
         }
 
-        button:disabled { opacity: 0.6; cursor: not-allowed; }
+        button:disabled { background: #444; cursor: not-allowed; }
 
         #result { 
             margin-top: 25px; 
             display: none; 
-            padding-top: 20px;
-            border-top: 1px solid #333;
+            animation: fadeIn 0.5s;
         }
 
         .download-btn {
@@ -97,7 +92,6 @@
             border-radius: 12px;
             text-decoration: none;
             font-weight: bold;
-            font-size: 1.1rem;
         }
 
         .spinner {
@@ -110,23 +104,24 @@
         }
 
         @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        #status { margin-top: 15px; font-size: 0.85rem; }
+        #status { margin-top: 15px; font-size: 0.85rem; color: #888; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>YouTube MP3</h1>
-    <p>Baixe áudio grátis e sem anúncios</p>
+    <h1 style="margin:0; font-size:1.5rem;">YouTube MP3</h1>
+    <p style="color:#888; font-size:0.9rem;">Converta e baixe agora</p>
 
     <div class="input-group">
         <i class="fas fa-link"></i>
-        <input type="url" id="videoUrl" placeholder="Cole o link do YouTube aqui..." />
+        <input type="url" id="videoUrl" placeholder="Cole o link aqui..." />
     </div>
 
-    <button id="mainBtn" onclick="baixarMusica()">
-        <span id="btnText">Extrair Áudio</span>
+    <button id="mainBtn" onclick="handleDownload()">
+        <span id="btnText">Converter para MP3</span>
         <div id="loader" class="spinner" style="display: none;"></div>
     </button>
 
@@ -134,14 +129,15 @@
 
     <div id="result">
         <a id="dlLink" class="download-btn" href="#" target="_blank">
-            <i class="fas fa-download"></i> SALVAR MP3
+            <i class="fas fa-download"></i> BAIXAR ARQUIVO
         </a>
+        <p style="font-size: 11px; margin-top: 8px; color: #666;">Se o download não abrir, segure o botão e escolha "Salvar link"</p>
     </div>
 </div>
 
 <script>
-    async function baixarMusica() {
-        const url = document.getElementById('videoUrl').value.trim();
+    async function handleDownload() {
+        const urlInput = document.getElementById('videoUrl').value.trim();
         const btn = document.getElementById('mainBtn');
         const btnText = document.getElementById('btnText');
         const loader = document.getElementById('loader');
@@ -149,55 +145,64 @@
         const result = document.getElementById('result');
         const dlLink = document.getElementById('dlLink');
 
-        if (!url.includes('youtu')) {
-            status.style.color = "#ff4d4d";
-            status.innerText = "Insira um link válido do YouTube.";
+        if (!urlInput.includes('youtu')) {
+            status.innerHTML = "<span style='color:#ff4d4d'>Link inválido!</span>";
             return;
         }
 
-        // Estado de carregamento
-        status.innerText = "Processando... Isso pode levar alguns segundos.";
-        status.style.color = "#aaa";
-        result.style.display = "none";
+        // Interface Loading
         btn.disabled = true;
         btnText.style.display = "none";
         loader.style.display = "block";
+        result.style.display = "none";
+        status.innerText = "Conectando ao servidor...";
 
-        try {
-            // API Cobalt Pública (Totalmente Grátis e sem Key)
-            const response = await fetch('https://api.cobalt.tools/api/json', {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    url: url,
-                    isAudioOnly: true,
-                    aFormat: 'mp3'
-                })
-            });
+        // Tentamos primeiro uma instância alternativa mais aberta
+        const apiInstances = [
+            'https://cobalt.perennialte.ch/api/json',
+            'https://api.cobalt.tools/api/json'
+        ];
 
-            const data = await response.json();
+        let success = false;
 
-            if (data.url) {
-                dlLink.href = data.url;
-                result.style.display = "block";
-                status.style.color = "#2ecc71";
-                status.innerText = "Conversão concluída!";
-            } else {
-                throw new Error(data.text || "Erro na conversão.");
+        for (let apiUrl of apiInstances) {
+            try {
+                status.innerText = "Processando áudio...";
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        url: urlInput,
+                        isAudioOnly: true,
+                        aFormat: 'mp3'
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.url) {
+                    dlLink.href = data.url;
+                    result.style.display = "block";
+                    status.innerHTML = "<span style='color:#2ecc71'>Pronto!</span>";
+                    success = true;
+                    break; // Sai do loop se conseguir
+                }
+            } catch (err) {
+                console.warn(`Falha na instância: ${apiUrl}`);
+                continue; // Tenta a próxima se falhar
             }
-
-        } catch (err) {
-            status.style.color = "#ff4d4d";
-            status.innerText = "A API está instável. Tente novamente em instantes.";
-            console.error(err);
-        } finally {
-            btn.disabled = false;
-            btnText.style.display = "block";
-            loader.style.display = "none";
         }
+
+        if (!success) {
+            status.innerHTML = "<span style='color:#ff4d4d'>Erro no servidor. Tente novamente em 1 minuto.</span>";
+        }
+
+        btn.disabled = false;
+        btnText.style.display = "block";
+        loader.style.display = "none";
     }
 </script>
 
