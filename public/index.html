@@ -3,159 +3,77 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Extrair MP3</title>
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<title>Converter para MP3</title>
 
 <style>
-:root{
---bg:#0f0f0f;--card:#1e1e1e;--text:#e0e0e0;
---primary:#e74c3c;--primary-dark:#c0392b;
---success:#2ecc71;--error:#e74c3c;--muted:#888;
-}
-*{box-sizing:border-box}
 body{
-margin:0;min-height:100dvh;display:flex;
-align-items:center;justify-content:center;
-background:var(--bg);color:var(--text);
-font-family:system-ui,-apple-system,sans-serif;
-padding:16px;
-}
-.container{
-width:100%;max-width:420px;
-background:var(--card);
-padding:28px;border-radius:18px;
-box-shadow:0 10px 30px rgba(0,0,0,.6);
-text-align:center;
-}
-h1{margin:.2em 0;font-size:1.8rem}
-.subtitle{color:var(--muted);margin-bottom:1.5rem}
-.input-group{position:relative;margin-bottom:1.2rem}
-input{
-width:100%;padding:16px 16px 16px 46px;
-border-radius:12px;border:2px solid #333;
-background:#2a2a2a;color:#fff;font-size:1rem;
-}
-input:focus{outline:none;border-color:var(--primary)}
-.input-group i{
-position:absolute;left:16px;top:50%;
-transform:translateY(-50%);color:var(--muted)
-}
-button{
-width:100%;padding:16px;font-size:1.05rem;
-border:none;border-radius:12px;
-background:var(--primary);color:#fff;
-font-weight:600;cursor:pointer;
+margin:0;min-height:100dvh;
 display:flex;align-items:center;justify-content:center;
-gap:10px;touch-action:manipulation;
+background:#0f0f0f;color:#fff;font-family:system-ui;
+padding:16px
 }
-button:hover{background:var(--primary-dark)}
+.box{
+background:#1e1e1e;padding:24px;border-radius:16px;
+max-width:420px;width:100%;text-align:center
+}
+input,button{
+width:100%;padding:14px;margin-top:12px;
+border-radius:10px;border:none;font-size:1rem
+}
+button{background:#e74c3c;color:#fff;font-weight:600}
 button:disabled{background:#444}
-.spinner{
-width:18px;height:18px;border:3px solid rgba(255,255,255,.3);
-border-top-color:#fff;border-radius:50%;
-animation:spin 1s linear infinite
-}
-@keyframes spin{to{transform:rotate(360deg)}}
-.message{
-margin-top:1rem;padding:10px;border-radius:8px;
-display:none;font-size:.9rem
-}
-.message.error{background:rgba(231,76,60,.2);color:#ff6b6b}
-.message.info{background:rgba(52,152,219,.2);color:#5dade2}
-#result{display:none;margin-top:1.5rem}
-.download{
-display:inline-flex;align-items:center;gap:10px;
-padding:14px 22px;border-radius:10px;
-background:var(--success);color:#fff;
-text-decoration:none;font-weight:bold
-}
-small{display:block;margin-top:1rem;color:#777;font-size:.75rem}
+a{display:block;margin-top:16px;color:#2ecc71;font-weight:bold}
+small{color:#888;font-size:.75rem}
 </style>
 </head>
 
 <body>
-<div class="container">
-<h1>Extrair MP3</h1>
-<p class="subtitle">Cole o link do YouTube</p>
+<div class="box">
+<h2>Converter para MP3</h2>
 
-<div class="input-group">
-<i class="fas fa-link"></i>
-<input id="url" placeholder="https://youtu.be/..." inputmode="url">
+<input type="file" id="file" accept="video/*,audio/*">
+
+<button id="btn">Converter</button>
+
+<p id="status"></p>
+<a id="download" style="display:none">Baixar MP3</a>
+
+<small>Use apenas arquivos que você tem direito de usar.</small>
 </div>
 
-<button id="btn">
-<span id="btnText">Converter para MP3</span>
-<span id="spin" class="spinner" style="display:none"></span>
-</button>
+<script type="module">
+import { FFmpeg } from "https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/ffmpeg.min.js";
+import { fetchFile } from "https://unpkg.com/@ffmpeg/util@0.12.1/dist/util.min.js";
 
-<div id="msg" class="message"></div>
+const ffmpeg = new FFmpeg();
+const btn = document.getElementById("btn");
+const fileInput = document.getElementById("file");
+const status = document.getElementById("status");
+const link = document.getElementById("download");
 
-<div id="result">
-<p>Conversão concluída</p>
-<a id="download" class="download" target="_blank">
-<i class="fas fa-download"></i> Baixar MP3
-</a>
-</div>
+btn.onclick = async () => {
+  const file = fileInput.files[0];
+  if (!file) return alert("Selecione um arquivo");
 
-<small>Use apenas conteúdos que você tem direito de usar.</small>
-</div>
+  btn.disabled = true;
+  status.textContent = "Carregando FFmpeg...";
 
-<script>
-const btn=document.getElementById("btn"),
-urlEl=document.getElementById("url"),
-msg=document.getElementById("msg"),
-spin=document.getElementById("spin"),
-btnText=document.getElementById("btnText"),
-res=document.getElementById("result"),
-dl=document.getElementById("download");
+  if (!ffmpeg.loaded) await ffmpeg.load();
 
-const ytRegex=/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\//;
+  status.textContent = "Convertendo...";
+  await ffmpeg.writeFile("input", await fetchFile(file));
+  await ffmpeg.exec(["-i","input","output.mp3"]);
 
-function show(text,type){
-msg.textContent=text;
-msg.className="message "+type;
-msg.style.display="block";
-}
+  const data = await ffmpeg.readFile("output.mp3");
+  const blob = new Blob([data.buffer], { type:"audio/mpeg" });
 
-btn.onclick=async()=>{
-const url=urlEl.value.trim();
-if(!ytRegex.test(url)){
-show("Link do YouTube inválido","error");
-return;
-}
-msg.style.display="none";res.style.display="none";
-btn.disabled=true;spin.style.display="inline-block";
-btnText.textContent="Processando...";
+  link.href = URL.createObjectURL(blob);
+  link.download = "audio.mp3";
+  link.style.display = "block";
+  link.textContent = "Baixar MP3";
 
-const controller=new AbortController();
-setTimeout(()=>controller.abort(),15000);
-
-try{
-const r=await fetch("https://api.cobalt.tools/api/json",{
-method:"POST",
-headers:{"Content-Type":"application/json","Accept":"application/json"},
-signal:controller.signal,
-body:JSON.stringify({
-url:url,isAudioOnly:true,aFormat:"mp3"
-})
-});
-const d=await r.json();
-if(d.url){
-dl.href=d.url;
-res.style.display="block";
-show("Pronto para download","info");
-}else{
-throw new Error("Resposta inválida da API");
-}
-}catch(e){
-show("Erro ao processar","error");
-}
-finally{
-btn.disabled=false;
-spin.style.display="none";
-btnText.textContent="Converter para MP3";
-}
+  status.textContent = "Concluído!";
+  btn.disabled = false;
 };
 </script>
 </body>
