@@ -1,80 +1,491 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Converter para MP3</title>
-
-<style>
-body{
-margin:0;min-height:100dvh;
-display:flex;align-items:center;justify-content:center;
-background:#0f0f0f;color:#fff;font-family:system-ui;
-padding:16px
-}
-.box{
-background:#1e1e1e;padding:24px;border-radius:16px;
-max-width:420px;width:100%;text-align:center
-}
-input,button{
-width:100%;padding:14px;margin-top:12px;
-border-radius:10px;border:none;font-size:1rem
-}
-button{background:#e74c3c;color:#fff;font-weight:600}
-button:disabled{background:#444}
-a{display:block;margin-top:16px;color:#2ecc71;font-weight:bold}
-small{color:#888;font-size:.75rem}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Buscar Música (YouTube + SoundCloud + MP3)</title>
+  <meta name="description" content="Busque por nome ou cole URL do YouTube para ouvir no YouTube, SoundCloud e converter para MP3">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    
+    .container {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+    
+    h1 {
+      color: #333;
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 2.2em;
+    }
+    
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 0.95em;
+    }
+    
+    #form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+    
+    #mode {
+      padding: 12px 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 16px;
+      background: white;
+      cursor: pointer;
+      transition: border-color 0.3s;
+    }
+    
+    #mode:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    
+    #input {
+      padding: 12px 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 16px;
+      transition: border-color 0.3s;
+    }
+    
+    #input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 15px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+    }
+    
+    #result {
+      display: none;
+    }
+    
+    .audio-box {
+      background: #f8f9fa;
+      border-radius: 15px;
+      padding: 25px;
+      margin-bottom: 20px;
+      border: 1px solid #e0e0e0;
+    }
+    
+    .audio-title {
+      font-size: 1.3em;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 20px;
+      word-break: break-word;
+    }
+    
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .actions a {
+      text-align: center;
+      padding: 12px 20px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s;
+      display: block;
+    }
+    
+    #ytBtn {
+      background: #FF0000;
+      color: white;
+    }
+    
+    #scBtn {
+      background: #f50;
+      color: white;
+    }
+    
+    #mp3Btn {
+      background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
+      color: white;
+    }
+    
+    #downloadMp3Btn {
+      background: linear-gradient(135deg, #2196F3 0%, #0D47A1 100%);
+      color: white;
+      display: none;
+      margin-top: 10px;
+    }
+    
+    .actions a:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    .mp3-status {
+      text-align: center;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 8px;
+      font-size: 0.9em;
+      display: none;
+    }
+    
+    .mp3-processing {
+      background: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeaa7;
+    }
+    
+    .mp3-ready {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    
+    .mp3-error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    
+    .error {
+      color: #e74c3c;
+      padding: 15px;
+      background: #fee;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    
+    .info {
+      text-align: center;
+      color: #666;
+      font-size: 0.85em;
+      line-height: 1.5;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+    }
+    
+    .warning {
+      background: #fff3cd;
+      color: #856404;
+      padding: 12px;
+      border-radius: 8px;
+      margin: 15px 0;
+      font-size: 0.85em;
+      border-left: 4px solid #ffc107;
+    }
+    
+    @media (max-width: 600px) {
+      .container {
+        padding: 25px;
+      }
+      
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+  </style>
 </head>
-
 <body>
-<div class="box">
-<h2>Converter para MP3</h2>
+  <div class="container">
+    <h1>Buscar Música</h1>
+    <p class="subtitle">Nome do artista/música ou URL do YouTube</p>
 
-<input type="file" id="file" accept="video/*,audio/*">
+    <form id="form">
+      <select id="mode">
+        <option value="auto">Detectar automaticamente</option>
+        <option value="name">Buscar por nome</option>
+        <option value="url">Colar URL do YouTube</option>
+      </select>
 
-<button id="btn">Converter</button>
+      <input id="input" type="text" placeholder="Ex.: João Gomes ou https://youtu.be/..." autocomplete="off" required>
+      <button type="submit">Buscar</button>
+    </form>
 
-<p id="status"></p>
-<a id="download" style="display:none">Baixar MP3</a>
+    <div id="result">
+      <div class="audio-box">
+        <div class="audio-title" id="title"></div>
+        <div class="actions">
+          <a id="ytBtn" target="_blank">Ouvir no YouTube</a>
+          <a id="scBtn" class="secondary" target="_blank">Ouvir no SoundCloud</a>
+          <a id="mp3Btn" class="secondary">Converter para MP3</a>
+          <a id="downloadMp3Btn" class="secondary" download>Baixar MP3</a>
+          <div id="mp3Status" class="mp3-status"></div>
+        </div>
+      </div>
+    </div>
 
-<small>Use apenas arquivos que você tem direito de usar.</small>
-</div>
+    <div class="warning">
+      ⚠️ A conversão para MP3 é para uso pessoal. Respeite os direitos autorais dos artistas.
+    </div>
 
-<script type="module">
-import { FFmpeg } from "https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/ffmpeg.min.js";
-import { fetchFile } from "https://unpkg.com/@ffmpeg/util@0.12.1/dist/util.min.js";
+    <div id="error" class="error"></div>
 
-const ffmpeg = new FFmpeg();
-const btn = document.getElementById("btn");
-const fileInput = document.getElementById("file");
-const status = document.getElementById("status");
-const link = document.getElementById("download");
+    <div class="info">
+      Streaming oficial • Para uso pessoal • Conforme termos das plataformas
+    </div>
+  </div>
 
-btn.onclick = async () => {
-  const file = fileInput.files[0];
-  if (!file) return alert("Selecione um arquivo");
-
-  btn.disabled = true;
-  status.textContent = "Carregando FFmpeg...";
-
-  if (!ffmpeg.loaded) await ffmpeg.load();
-
-  status.textContent = "Convertendo...";
-  await ffmpeg.writeFile("input", await fetchFile(file));
-  await ffmpeg.exec(["-i","input","output.mp3"]);
-
-  const data = await ffmpeg.readFile("output.mp3");
-  const blob = new Blob([data.buffer], { type:"audio/mpeg" });
-
-  link.href = URL.createObjectURL(blob);
-  link.download = "audio.mp3";
-  link.style.display = "block";
-  link.textContent = "Baixar MP3";
-
-  status.textContent = "Concluído!";
-  btn.disabled = false;
-};
-</script>
+  <script>
+    document.getElementById('form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const mode = document.getElementById('mode').value;
+      const input = document.getElementById('input').value.trim();
+      const errorDiv = document.getElementById('error');
+      const resultDiv = document.getElementById('result');
+      const titleDiv = document.getElementById('title');
+      const ytBtn = document.getElementById('ytBtn');
+      const scBtn = document.getElementById('scBtn');
+      const mp3Btn = document.getElementById('mp3Btn');
+      const downloadMp3Btn = document.getElementById('downloadMp3Btn');
+      const mp3Status = document.getElementById('mp3Status');
+      
+      // Reset
+      errorDiv.style.display = 'none';
+      resultDiv.style.display = 'none';
+      mp3Status.style.display = 'none';
+      downloadMp3Btn.style.display = 'none';
+      
+      if (!input) {
+        showError('Por favor, digite algo para buscar.');
+        return;
+      }
+      
+      // Verificar se é URL do YouTube
+      const isYoutubeUrl = mode === 'url' || (mode === 'auto' && 
+        (input.includes('youtube.com') || 
+         input.includes('youtu.be') || 
+         input.includes('y2u.be')));
+      
+      if (isYoutubeUrl) {
+        // Extrair ID do vídeo do YouTube
+        let videoId = '';
+        let videoUrl = '';
+        
+        if (input.includes('youtube.com/watch?v=')) {
+          videoId = input.split('v=')[1]?.split('&')[0];
+          videoUrl = input.split('&')[0]; // Pega a URL sem parâmetros extras
+        } else if (input.includes('youtu.be/') || input.includes('y2u.be/')) {
+          videoId = input.split('/').pop()?.split('?')[0];
+          videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+        }
+        
+        if (!videoId || videoId.length !== 11) {
+          showError('URL do YouTube inválida. Use um link completo como: https://www.youtube.com/watch?v=CODIGO ou https://youtu.be/CODIGO');
+          return;
+        }
+        
+        // Mostrar resultado
+        titleDiv.textContent = 'Música do YouTube';
+        ytBtn.href = videoUrl;
+        ytBtn.textContent = 'Ouvir no YouTube';
+        
+        // Buscar no SoundCloud
+        scBtn.href = `https://soundcloud.com/search?q=${encodeURIComponent(input)}`;
+        scBtn.textContent = 'Buscar no SoundCloud';
+        
+        // Configurar botão MP3
+        mp3Btn.style.display = 'block';
+        mp3Btn.onclick = function() {
+          convertToMp3(videoUrl, videoId);
+        };
+        
+        resultDiv.style.display = 'block';
+        
+      } else {
+        // Buscar por nome
+        const searchQuery = encodeURIComponent(input);
+        
+        titleDiv.textContent = `Resultados para: "${input}"`;
+        ytBtn.href = `https://www.youtube.com/results?search_query=${searchQuery}`;
+        ytBtn.textContent = 'Buscar no YouTube';
+        
+        scBtn.href = `https://soundcloud.com/search?q=${searchQuery}`;
+        scBtn.textContent = 'Buscar no SoundCloud';
+        
+        // Esconder botão MP3 para busca por nome
+        mp3Btn.style.display = 'none';
+        
+        resultDiv.style.display = 'block';
+      }
+    });
+    
+    async function convertToMp3(youtubeUrl, videoId) {
+      const mp3Status = document.getElementById('mp3Status');
+      const mp3Btn = document.getElementById('mp3Btn');
+      const downloadMp3Btn = document.getElementById('downloadMp3Btn');
+      
+      // Mostrar status de processamento
+      mp3Status.textContent = '⏳ Convertendo vídeo para MP3...';
+      mp3Status.className = 'mp3-status mp3-processing';
+      mp3Status.style.display = 'block';
+      mp3Btn.style.display = 'none';
+      
+      try {
+        // API de conversão gratuita (pode precisar de ajustes)
+        // Opção 1: API pública (pode ter limites)
+        const apiUrl = `https://api.vevioz.com/api/widget/mp3/${videoId}`;
+        
+        // Opção 2: Alternativa usando outra API
+        // const apiUrl = `https://youtube-mp36.p.rapidapi.com/dl?id=${videoId}`;
+        
+        // Tentar múltiplas APIs
+        const apis = [
+          `https://api.vevioz.com/api/button/mp3/${videoId}`,
+          `https://api.vevioz.com/api/widget/mp3/${videoId}`,
+          `https://convert2mp3s.com/api/widget?url=${encodeURIComponent(youtubeUrl)}`
+        ];
+        
+        let downloadUrl = null;
+        
+        for (let api of apis) {
+          try {
+            const response = await fetch(api, {
+              headers: {
+                'Accept': 'application/json',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+              }
+            });
+            
+            if (response.ok) {
+              const data = await response.json();
+              
+              // Verificar diferentes estruturas de resposta
+              if (data.url) {
+                downloadUrl = data.url;
+                break;
+              } else if (data.dlink) {
+                downloadUrl = data.dlink;
+                break;
+              } else if (data.link) {
+                downloadUrl = data.link;
+                break;
+              }
+            }
+          } catch (apiError) {
+            console.log(`API ${api} falhou, tentando próxima...`);
+          }
+        }
+        
+        // Se nenhuma API funcionar, usar método alternativo
+        if (!downloadUrl) {
+          // Método alternativo usando serviços online
+          downloadUrl = `https://ytmp3.cc/api/v1/download?url=${encodeURIComponent(youtubeUrl)}`;
+          
+          // Ou abrir em uma nova janela
+          window.open(downloadUrl, '_blank');
+          
+          mp3Status.textContent = '✅ Redirecionando para conversor online...';
+          mp3Status.className = 'mp3-status mp3-ready';
+          mp3Btn.style.display = 'block';
+          return;
+        }
+        
+        // Configurar botão de download
+        downloadMp3Btn.href = downloadUrl;
+        downloadMp3Btn.download = `musica_${videoId}.mp3`;
+        downloadMp3Btn.textContent = '📥 Baixar MP3';
+        downloadMp3Btn.style.display = 'block';
+        
+        mp3Status.textContent = '✅ MP3 pronto para download!';
+        mp3Status.className = 'mp3-status mp3-ready';
+        
+      } catch (error) {
+        console.error('Erro na conversão:', error);
+        mp3Status.textContent = '❌ Erro na conversão. Tente novamente ou use outro vídeo.';
+        mp3Status.className = 'mp3-status mp3-error';
+        mp3Btn.style.display = 'block';
+        
+        // Oferecer alternativa
+        setTimeout(() => {
+          const alternativeUrl = `https://ytmp3.cc/api/v1/download?url=${encodeURIComponent(youtubeUrl)}`;
+          if (confirm('Não foi possível converter automaticamente. Deseja abrir o conversor online?')) {
+            window.open(alternativeUrl, '_blank');
+          }
+        }, 1000);
+      }
+    }
+    
+    function showError(message) {
+      const errorDiv = document.getElementById('error');
+      errorDiv.textContent = message;
+      errorDiv.style.display = 'block';
+      
+      setTimeout(() => {
+        errorDiv.style.display = 'none';
+      }, 5000);
+    }
+    
+    // Mudar placeholder baseado no modo selecionado
+    document.getElementById('mode').addEventListener('change', function() {
+      const input = document.getElementById('input');
+      const mode = this.value;
+      
+      if (mode === 'url') {
+        input.placeholder = 'Cole a URL do YouTube aqui...';
+      } else if (mode === 'name') {
+        input.placeholder = 'Nome do artista ou música...';
+      } else {
+        input.placeholder = 'Ex.: João Gomes ou https://youtu.be/...';
+      }
+    });
+    
+    // Detectar automaticamente se é URL
+    document.getElementById('input').addEventListener('input', function() {
+      const modeSelect = document.getElementById('mode');
+      const value = this.value.trim();
+      
+      if (modeSelect.value === 'auto') {
+        if (value.includes('youtube.com') || value.includes('youtu.be') || value.includes('y2u.be')) {
+          modeSelect.value = 'url';
+          this.placeholder = 'Cole a URL do YouTube aqui...';
+        } else {
+          modeSelect.value = 'name';
+          this.placeholder = 'Nome do artista ou música...';
+        }
+      }
+    });
+  </script>
 </body>
 </html>
