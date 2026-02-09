@@ -1,269 +1,270 @@
-<!DOCTYPE html><html><head><meta charset="utf-8"><style>:root {
-      --bg: #0f0f0f;
-      --card: #1e1e1e;
-      --accent: #0a84ff;
-      --text: #e0e0e0;
-      --gray: #888;
-    }
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: Arial, sans-serif;
-      min-height: 100vh;
-      padding: 20px 10px;
-    }
-    .container {
-      max-width: 420px;
-      margin: 0 auto;
-    }
-    h1, h2 {
-      text-align: center;
-      margin-bottom: 15px;
-      font-size: 1.4em;
-    }
-    .section {
-      background: var(--card);
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 25px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-    }
-    input[type="text"], input[type="file"] {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      border-radius: 8px;
-      border: 1px solid #444;
-      background: #2a2a2a;
-      color: white;
-      font-size: 15px;
-    }
-    button {
-      padding: 12px 20px;
-      margin: 6px;
-      border: none;
-      border-radius: 8px;
-      background: #333;
-      color: white;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    button:hover { background: #444; }
-    button.active, button.accent {
-      background: var(--accent);
-    }
-    #playlist {
-      list-style: none;
-      max-height: 220px;
-      overflow-y: auto;
-      margin: 15px 0;
-    }
-    #playlist li {
-      padding: 10px;
-      cursor: pointer;
-      border-bottom: 1px solid #333;
-    }
-    #playlist li.active {
-      background: #2a2a2a;
-      color: var(--accent);
-    }
-    audio {
-      width: 100%;
-      margin: 15px 0;
-    }
-    .controls {
-      text-align: center;
-    }
-    .info, .warning {
-      font-size: 0.85em;
-      color: #aaa;
-      text-align: center;
-      margin-top: 12px;
-      line-height: 1.4;
-    }
-    .warning { color: #ff9800; }
-    @media (max-width: 500px) {
-      .section { padding: 15px; }
-      button { width: 100%; margin: 8px 0; }
-    }</style></head><body><!DOCTYPE html>
+[HTML]
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>MP3 Player</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <!-- PWA -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#121212">
-
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Baixar MP3 do YouTube</title>
+  <meta name="description" content="Cole a URL do YouTube para ouvir ou baixar MP3">
   
 </head>
 <body>
+  <div class="container">
+    <h1>Baixar MP3 do YouTube</h1>
+    <p class="subtitle">Cole a URL do vídeo do YouTube</p>
 
-<div class="container">
+    <form id="form">
+      <input id="input" type="text" placeholder="https://youtu.be/... ou https://www.youtube.com/watch?v=..." autocomplete="off" required>
+      <button type="submit">Processar</button>
+    </form>
 
-  <h1>MP3 Player</h1>
+    <div id="result">
+      <div class="audio-box">
+        <div class="audio-title" id="title"></div>
+        <div class="actions">
+          <a id="ytBtn" target="_blank">Ouvir no YouTube</a>
+          <button id="playBtn">Ouvir Agora</button>
+          <a id="mp3Btn" target="_blank">Baixar MP3</a>
+        </div>
+      </div>
+    </div>
 
-  <!-- ====================== -->
-  <!--  SEÇÃO 1 - YOUTUBE (agora no topo) -->
-  <!-- ====================== -->
-  <div class="section">
-    <h2>Adicionar do YouTube</h2>
-    
-    <input type="text" id="yturl" placeholder="Cole o link do YouTube aqui...">
-    <button onclick="openConverter()" class="accent">Converter & Baixar →</button>
-    
+    <div id="error" class="error"></div>
+
     <div class="info">
-      Após baixar o MP3, volte aqui e adicione o arquivo na área abaixo (selecione ou arraste).
-    </div>
-    <div class="warning">
-      Uso pessoal • Respeite direitos autorais
+      <strong>Uso exclusivo para estudo, testes de API e uso pessoal/não comercial.</strong><br>
+      Downloads apenas para fins privados • Respeite os direitos autorais e termos do YouTube
     </div>
   </div>
 
-  <!-- ====================== -->
-  <!--  SEÇÃO 2 - PLAYER LOCAL (agora embaixo) -->
-  <!-- ====================== -->
-  <div class="section">
-    <h2>Player Local</h2>
-    
-    <input type="file" id="files" accept="audio/mpeg,audio/mp3" multiple webkitdirectory directory>
-    <p style="font-size:0.85em; color:#888; text-align:center; margin:8px 0;">
-      Selecione arquivos ou pasta inteira
-    </p>
-
-    <audio id="audio" controls></audio>
-
-    <div class="controls">
-      <button onclick="prev()">⏮ Anterior</button>
-      <button onclick="next()">Próxima ⏭</button>
-      <button id="shuffleBtn" onclick="toggleShuffle()">🔀 Shuffle</button>
-    </div>
-
-    <ul id="playlist"></ul>
-  </div>
-
-</div>
-
-
-
+  
 </body>
-</html><script>// ───────────────────────────────────────────────
-//              PLAYER LOCAL
-// ───────────────────────────────────────────────
-let audio = document.getElementById('audio');
-let fileInput = document.getElementById('files');
-let playlistEl = document.getElementById('playlist');
-let shuffleBtn = document.getElementById('shuffleBtn');
+</html>
 
-let files = [];
-let order = [];
-let currentIndex = 0;
-let shuffle = false;
-
-fileInput.onchange = () => {
-  files = [...fileInput.files].filter(f => f.type.startsWith('audio/'));
-  order = files.map((_,i) => i);
-  renderPlaylist();
-  loadLastPosition() || play(0);
-};
-
-function renderPlaylist() {
-  playlistEl.innerHTML = '';
-  order.forEach((fileIndex, pos) => {
-    let li = document.createElement('li');
-    li.textContent = files[fileIndex].name;
-    li.onclick = () => play(pos);
-    playlistEl.appendChild(li);
-  });
-}
-
-function play(pos) {
-  if (pos < 0 || pos >= order.length) return;
-  
-  currentIndex = pos;
-  let file = files[order[pos]];
-  audio.src = URL.createObjectURL(file);
-  audio.play().catch(e => console.log("Erro play:", e));
-  
-  saveLastPosition();
-  highlightCurrent();
-}
-
-function next() {
-  let nextPos = currentIndex + 1;
-  if (nextPos >= order.length) nextPos = 0;
-  play(nextPos);
-}
-
-function prev() {
-  let prevPos = currentIndex - 1;
-  if (prevPos < 0) prevPos = order.length - 1;
-  play(prevPos);
-}
-
-audio.onended = next;
-
-function highlightCurrent() {
-  [...playlistEl.children].forEach((li,i) => {
-    li.classList.toggle('active', i === currentIndex);
-  });
-}
-
-function toggleShuffle() {
-  shuffle = !shuffle;
-  shuffleBtn.classList.toggle('active', shuffle);
-
-  if (shuffle) {
-    order.sort(() => Math.random() - 0.5);
-  } else {
-    order = files.map((_,i)=>i);
-  }
-  
-  renderPlaylist();
-  play(0);
-}
-
-function saveLastPosition() {
-  try {
-    localStorage.setItem('lastPlayedIndex', currentIndex);
-  } catch(e){}
-}
-
-function loadLastPosition() {
-  try {
-    let saved = localStorage.getItem('lastPlayedIndex');
-    if (saved !== null) {
-      let idx = Number(saved);
-      if (idx >= 0 && idx < order.length) {
-        play(idx);
-        return true;
-      }
+[CSS]
+* {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
-  } catch(e){}
-  return false;
-}
+    
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    
+    .container {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+    
+    h1 {
+      color: #333;
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 2.2em;
+    }
+    
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 0.95em;
+    }
+    
+    #form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+    
+    #input {
+      padding: 12px 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 16px;
+      transition: border-color 0.3s;
+    }
+    
+    #input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 15px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+    }
+    
+    #result {
+      display: none;
+    }
+    
+    .audio-box {
+      background: #f8f9fa;
+      border-radius: 15px;
+      padding: 25px;
+      margin-bottom: 20px;
+      border: 1px solid #e0e0e0;
+    }
+    
+    .audio-title {
+      font-size: 1.3em;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 20px;
+      word-break: break-word;
+    }
+    
+    .actions {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+    
+    .actions a, .actions button {
+      flex: 1;
+      min-width: 200px;
+      text-align: center;
+      padding: 12px 20px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s;
+      border: none;
+      cursor: pointer;
+    }
+    
+    #ytBtn {
+      background: #FF0000;
+      color: white;
+    }
+    
+    #playBtn {
+      background: #3498db;
+      color: white;
+    }
+    
+    #mp3Btn {
+      background: #27ae60;
+      color: white;
+    }
+    
+    .actions a:hover, .actions button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    .error {
+      color: #e74c3c;
+      padding: 15px;
+      background: #fee;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    
+    .info {
+      text-align: center;
+      color: #666;
+      font-size: 0.85em;
+      line-height: 1.5;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+    }
+    
+    @media (max-width: 600px) {
+      .container { padding: 25px; }
+      h1 { font-size: 1.8em; }
+      .actions { flex-direction: column; }
+      .actions a, .actions button { min-width: 100% !important; }
+    }
 
-// ───────────────────────────────────────────────
-//              YOUTUBE → MP3 (externo)
-// ───────────────────────────────────────────────
-function openConverter() {
-  const url = document.getElementById('yturl').value.trim();
-  if (!url) {
-    alert("Cole um link do YouTube primeiro.");
-    return;
-  }
+[JS]
+let currentUrl = ''; // Armazena a URL para usar no botão Ouvir Agora
 
-  if (!url.includes('youtube.com') && !url.includes('youtu.be')) {
-    alert("Link não parece ser do YouTube.");
-    return;
-  }
-
-  // Conversor mais recomendado em 2026 (ad-free, safe, 320kbps)
-  const converterUrl = `https://cnvmp3.com/?url=${encodeURIComponent(url)}`;
-
-  window.open(converterUrl, '_blank');
-  
-  alert("1. O conversor abrirá em outra aba\n2. Baixe o MP3 (escolha 320kbps se disponível)\n3. Volte aqui e adicione o arquivo baixado no input abaixo");
-}</script></body></html>
+    document.getElementById('form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const input = document.getElementById('input').value.trim();
+      const errorDiv = document.getElementById('error');
+      const resultDiv = document.getElementById('result');
+      const titleDiv = document.getElementById('title');
+      const ytBtn = document.getElementById('ytBtn');
+      const playBtn = document.getElementById('playBtn');
+      const mp3Btn = document.getElementById('mp3Btn');
+      
+      // Reset
+      errorDiv.style.display = 'none';
+      resultDiv.style.display = 'none';
+      
+      if (!input) {
+        showError('Cole uma URL do YouTube para continuar.');
+        return;
+      }
+      
+      const isYoutubeUrl = input.includes('youtube.com') || 
+                           input.includes('youtu.be') || 
+                           input.includes('y2u.be');
+      
+      if (!isYoutubeUrl) {
+        showError('Por favor, cole uma URL válida do YouTube (ex.: https://youtu.be/XXXXX)');
+        return;
+      }
+      
+      let videoId = '';
+      if (input.includes('youtube.com/watch?v=')) {
+        videoId = input.split('v=')[1]?.split('&')[0];
+      } else if (input.includes('youtu.be/') || input.includes('y2u.be/')) {
+        videoId = input.split('/').pop()?.split('?')[0];
+      }
+      
+      if (!videoId || videoId.length !== 11) {
+        showError('URL do YouTube inválida. Verifique o link e tente novamente.');
+        return;
+      }
+      
+      currentUrl = input; // Salva para usar depois
+      
+      titleDiv.textContent = 'Vídeo detectado no YouTube';
+      ytBtn.href = `https://www.youtube.com/watch?v=${videoId}`;
+      
+      // Botão Ouvir Agora: abre nova aba no conversor (muitos permitem preview/play)
+      playBtn.onclick = () => {
+        window.open(`https://en.onlymp3.to/?url=${encodeURIComponent(currentUrl)}`, '_blank');
+      };
+      
+      // Baixar MP3 (usa onlymp3.to - top safe/ad-free em 2026)
+      mp3Btn.href = `https://en.onlymp3.to/?url=${encodeURIComponent(currentUrl)}`;
+      
+      resultDiv.style.display = 'block';
+    });
+    
+    function showError(message) {
+      const errorDiv = document.getElementById('error');
+      errorDiv.textContent = message;
+      errorDiv.style.display = 'block';
+      setTimeout(() => errorDiv.style.display = 'none', 6000);
+    }
