@@ -1,0 +1,291 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><style>:root {
+      --bg: #0f0f0f;
+      --card: #1e1e1e;
+      --accent: #0a84ff;
+      --text: #e0e0e0;
+      --gray: #888;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, sans-serif;
+      min-height: 100vh;
+      padding: 15px 10px;
+    }
+    .container {
+      max-width: 420px;
+      margin: 0 auto;
+    }
+    h1, h2 {
+      text-align: center;
+      margin-bottom: 12px;
+      font-size: 1.4em;
+    }
+    .section {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+    input[type="text"], input[type="file"] {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid #444;
+      background: #2a2a2a;
+      color: white;
+      font-size: 15px;
+    }
+    button {
+      padding: 12px;
+      margin: 6px 0;
+      border: none;
+      border-radius: 8px;
+      background: #333;
+      color: white;
+      cursor: pointer;
+      width: 100%;
+      font-size: 16px;
+    }
+    button:hover { background: #444; }
+    button.accent {
+      background: var(--accent);
+    }
+    #playlist {
+      list-style: none;
+      max-height: 220px;
+      overflow-y: auto;
+      margin: 15px 0;
+      padding: 0;
+    }
+    #playlist li {
+      padding: 10px;
+      cursor: pointer;
+      border-bottom: 1px solid #333;
+    }
+    #playlist li.active {
+      background: #2a2a2a;
+      color: var(--accent);
+    }
+    audio {
+      width: 100%;
+      margin: 15px 0;
+    }
+    .controls {
+      text-align: center;
+      margin: 10px 0;
+    }
+    .info, .warning {
+      font-size: 0.85em;
+      color: #aaa;
+      text-align: center;
+      margin-top: 10px;
+      line-height: 1.4;
+    }
+    .warning { color: #ff9800; }
+    #downloaderBox {
+      margin-top: 15px;
+      border: 1px solid #444;
+      border-radius: 8px;
+      overflow: hidden;
+      height: 160px;
+      display: none;
+      background: #222;
+    }
+    @media (max-width: 500px) {
+      .section { padding: 15px; }
+    }</style></head><body><!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>MP3 Player</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- PWA (se você tiver manifest.json e sw.js) -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#121212">
+
+  
+</head>
+<body>
+
+<div class="container">
+
+  <h1>MP3 Player</h1>
+
+  <!-- ====================== -->
+  <!--   YOUTUBE NO TOPO      -->
+  <!-- ====================== -->
+  <div class="section">
+    <h2>Adicionar Música do YouTube</h2>
+    
+    <input type="text" id="yturl" placeholder="Cole o link do YouTube aqui...">
+    <button onclick="showDownloader()" class="accent">Mostrar Conversor MP3</button>
+    
+    <div id="downloaderBox">
+      <iframe id="ytIframe" width="100%" height="100%" style="border:none;" allowfullscreen></iframe>
+    </div>
+    
+    <div class="info">
+      1. Cole o link → clique no botão acima<br>
+      2. Clique no botão "MP3" que aparece no quadro abaixo<br>
+      3. Baixe o arquivo → volte aqui e arraste/selecione no campo abaixo
+    </div>
+    <div class="warning">
+      Uso pessoal apenas • Respeite direitos autorais
+    </div>
+  </div>
+
+  <!-- ====================== -->
+  <!--   PLAYER LOCAL EMBAIXO -->
+  <!-- ====================== -->
+  <div class="section">
+    <h2>Player Local</h2>
+    
+    <input type="file" id="files" accept="audio/mpeg,audio/mp3" multiple webkitdirectory directory>
+    <p style="font-size:0.85em; color:#888; text-align:center; margin:8px 0;">
+      Selecione arquivos ou pasta (ou arraste os MP3 baixados aqui)
+    </p>
+
+    <audio id="audio" controls></audio>
+
+    <div class="controls">
+      <button onclick="prev()">⏮ Anterior</button>
+      <button onclick="next()">Próxima ⏭</button>
+      <button id="shuffleBtn" onclick="toggleShuffle()">🔀 Shuffle</button>
+    </div>
+
+    <ul id="playlist"></ul>
+  </div>
+
+</div>
+
+
+
+</body>
+</html><script>// PLAYER LOCAL (mantido igual, só ajustei funções para compatibilidade)
+let audio = document.getElementById('audio');
+let fileInput = document.getElementById('files');
+let playlistEl = document.getElementById('playlist');
+let shuffleBtn = document.getElementById('shuffleBtn');
+
+let files = [];
+let order = [];
+let currentIndex = 0;
+let shuffle = false;
+
+fileInput.onchange = () => {
+  files = [...fileInput.files].filter(f => f.type.startsWith('audio/'));
+  order = files.map((_,i) => i);
+  renderPlaylist();
+  loadLastPosition() || play(0);
+};
+
+function renderPlaylist() {
+  playlistEl.innerHTML = '';
+  order.forEach((fileIndex, pos) => {
+    let li = document.createElement('li');
+    li.textContent = files[fileIndex].name;
+    li.onclick = () => play(pos);
+    playlistEl.appendChild(li);
+  });
+}
+
+function play(pos) {
+  if (pos < 0 || pos >= order.length) return;
+  currentIndex = pos;
+  let file = files[order[pos]];
+  audio.src = URL.createObjectURL(file);
+  audio.play().catch(e => console.log("Erro ao tocar:", e));
+  saveLastPosition();
+  highlightCurrent();
+}
+
+function next() {
+  let nextPos = currentIndex + 1;
+  if (nextPos >= order.length) nextPos = 0;
+  play(nextPos);
+}
+
+function prev() {
+  let prevPos = currentIndex - 1;
+  if (prevPos < 0) prevPos = order.length - 1;
+  play(prevPos);
+}
+
+audio.onended = next;
+
+function highlightCurrent() {
+  [...playlistEl.children].forEach((li,i) => {
+    li.classList.toggle('active', i === currentIndex);
+  });
+}
+
+function toggleShuffle() {
+  shuffle = !shuffle;
+  shuffleBtn.classList.toggle('active', shuffle);
+  if (shuffle) {
+    order.sort(() => Math.random() - 0.5);
+  } else {
+    order = files.map((_,i)=>i);
+  }
+  renderPlaylist();
+  play(0);
+}
+
+function saveLastPosition() {
+  localStorage.setItem('lastPlayedIndex', currentIndex);
+}
+
+function loadLastPosition() {
+  let saved = localStorage.getItem('lastPlayedIndex');
+  if (saved !== null) {
+    let idx = Number(saved);
+    if (idx >= 0 && idx < order.length) {
+      play(idx);
+      return true;
+    }
+  }
+  return false;
+}
+
+// YOUTUBE CONVERTER (iframe embed simples e funcional em 2026)
+function showDownloader() {
+  const url = document.getElementById('yturl').value.trim();
+  if (!url) {
+    alert("Cole um link do YouTube primeiro!");
+    return;
+  }
+
+  let videoId = '';
+  try {
+    if (url.includes('youtu.be/')) {
+      videoId = url.split('youtu.be/')[1].split('?')[0].split('&')[0];
+    } else if (url.includes('v=')) {
+      videoId = url.split('v=')[1].split('&')[0];
+    } else {
+      alert("Link não parece ser do YouTube. Use https://youtu.be/... ou https://youtube.com/watch?v=...");
+      return;
+    }
+  } catch (e) {
+    alert("Erro ao ler o link. Verifique e tente novamente.");
+    return;
+  }
+
+  if (videoId.length !== 11) {
+    alert("ID do vídeo inválido (deve ter 11 caracteres).");
+    return;
+  }
+
+  // Embed do vevioz (funciona bem em 2026, botão MP3 direto no iframe)
+  const embedUrl = `https://api.vevioz.com/api/button/mp3/${videoId}`;
+
+  document.getElementById('ytIframe').src = embedUrl;
+  document.getElementById('downloaderBox').style.display = 'block';
+
+  // Scroll suave para o iframe aparecer
+  document.getElementById('downloaderBox').scrollIntoView({ behavior: 'smooth' });
+}</script></body></html>
