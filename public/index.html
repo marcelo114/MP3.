@@ -1,943 +1,276 @@
+[HTML]
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Conversor YouTube para MP3</title>
-  <meta name="description" content="Converta vídeos do YouTube diretamente para MP3">
+  <meta charset="UTF-8">
+  <title>MP3 Player</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <!-- Adicionando Font Awesome para ícones -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#121212">
+
   
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    
-    body {
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-      color: #fff;
-    }
-    
-    .container {
-      background: rgba(25, 25, 35, 0.95);
-      border-radius: 20px;
-      padding: 40px;
-      width: 100%;
-      max-width: 600px;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
-    }
-    
-    .logo {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    
-    .logo i {
-      font-size: 3.5em;
-      color: #FF0000;
-      margin-bottom: 15px;
-    }
-    
-    h1 {
-      color: #fff;
-      text-align: center;
-      margin-bottom: 10px;
-      font-size: 2.5em;
-      background: linear-gradient(90deg, #FF0000, #FF6B6B);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    
-    .subtitle {
-      text-align: center;
-      color: #aaa;
-      margin-bottom: 30px;
-      font-size: 1em;
-      line-height: 1.5;
-    }
-    
-    #form {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      margin-bottom: 30px;
-    }
-    
-    .url-input-container {
-      position: relative;
-      width: 100%;
-    }
-    
-    .url-input-container i {
-      position: absolute;
-      left: 20px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #FF0000;
-      font-size: 1.2em;
-    }
-    
-    #urlInput {
-      width: 100%;
-      padding: 15px 20px 15px 50px;
-      border: 2px solid #333;
-      border-radius: 12px;
-      font-size: 16px;
-      background: rgba(40, 40, 50, 0.8);
-      color: white;
-      transition: all 0.3s;
-    }
-    
-    #urlInput:focus {
-      outline: none;
-      border-color: #FF0000;
-      box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.2);
-    }
-    
-    #urlInput::placeholder {
-      color: #888;
-    }
-    
-    .quality-selector {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 10px;
-      flex-wrap: wrap;
-    }
-    
-    .quality-btn {
-      flex: 1;
-      padding: 12px;
-      background: rgba(60, 60, 70, 0.8);
-      border: 2px solid #444;
-      border-radius: 8px;
-      color: #ccc;
-      font-size: 14px;
-      cursor: pointer;
-      transition: all 0.3s;
-      text-align: center;
-      min-width: 100px;
-    }
-    
-    .quality-btn:hover {
-      background: rgba(80, 80, 90, 0.8);
-    }
-    
-    .quality-btn.active {
-      background: linear-gradient(135deg, #FF0000, #FF6B6B);
-      border-color: #FF0000;
-      color: white;
-      box-shadow: 0 5px 15px rgba(255, 0, 0, 0.3);
-    }
-    
-    .convert-btn {
-      background: linear-gradient(135deg, #FF0000, #FF6B6B);
-      color: white;
-      border: none;
-      padding: 18px;
-      border-radius: 12px;
-      font-size: 18px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      margin-top: 10px;
-    }
-    
-    .convert-btn:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 10px 25px rgba(255, 0, 0, 0.4);
-    }
-    
-    .convert-btn:disabled {
-      background: #666;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
-    
-    #result {
-      display: none;
-      margin-top: 30px;
-    }
-    
-    .video-info {
-      background: rgba(40, 40, 50, 0.8);
-      border-radius: 15px;
-      padding: 25px;
-      margin-bottom: 25px;
-      border-left: 5px solid #FF0000;
-    }
-    
-    .video-title {
-      font-size: 1.4em;
-      font-weight: 600;
-      color: #fff;
-      margin-bottom: 15px;
-      line-height: 1.4;
-    }
-    
-    .video-details {
-      display: flex;
-      justify-content: space-between;
-      color: #aaa;
-      font-size: 0.9em;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-    
-    .conversion-options {
-      background: rgba(40, 40, 50, 0.8);
-      border-radius: 15px;
-      padding: 25px;
-      margin-bottom: 25px;
-    }
-    
-    .options-title {
-      font-size: 1.2em;
-      font-weight: 600;
-      color: #fff;
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    
-    .format-options {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-      gap: 15px;
-      margin-bottom: 25px;
-    }
-    
-    .format-option {
-      background: rgba(60, 60, 70, 0.8);
-      border: 2px solid #444;
-      border-radius: 10px;
-      padding: 15px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-    
-    .format-option:hover {
-      background: rgba(80, 80, 90, 0.8);
-    }
-    
-    .format-option.active {
-      background: linear-gradient(135deg, #FF0000, #FF6B6B);
-      border-color: #FF0000;
-      box-shadow: 0 5px 15px rgba(255, 0, 0, 0.3);
-    }
-    
-    .format-icon {
-      font-size: 1.8em;
-      margin-bottom: 10px;
-      color: #FF0000;
-    }
-    
-    .format-option.active .format-icon {
-      color: white;
-    }
-    
-    .format-name {
-      font-weight: 600;
-      color: #fff;
-      margin-bottom: 5px;
-    }
-    
-    .format-desc {
-      font-size: 0.8em;
-      color: #aaa;
-    }
-    
-    .download-section {
-      text-align: center;
-    }
-    
-    .download-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      background: linear-gradient(135deg, #4CAF50, #2E7D32);
-      color: white;
-      border: none;
-      padding: 18px 30px;
-      border-radius: 12px;
-      font-size: 18px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s;
-      text-decoration: none;
-    }
-    
-    .download-btn:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 10px 25px rgba(76, 175, 80, 0.4);
-    }
-    
-    .loading {
-      text-align: center;
-      padding: 30px;
-      display: none;
-    }
-    
-    .spinner {
-      width: 60px;
-      height: 60px;
-      border: 5px solid rgba(255, 255, 255, 0.1);
-      border-top: 5px solid #FF0000;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 20px;
-    }
-    
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    
-    .loading-text {
-      color: #aaa;
-      font-size: 1.1em;
-    }
-    
-    .error {
-      color: #ff6b6b;
-      padding: 15px;
-      background: rgba(255, 107, 107, 0.1);
-      border-radius: 10px;
-      margin-bottom: 20px;
-      display: none;
-      border-left: 5px solid #ff6b6b;
-    }
-    
-    .info-box {
-      background: rgba(30, 30, 40, 0.8);
-      border-radius: 10px;
-      padding: 15px;
-      margin-top: 25px;
-      color: #aaa;
-      font-size: 0.85em;
-      line-height: 1.5;
-      border: 1px solid rgba(255, 255, 255, 0.05);
-    }
-    
-    .features {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 15px;
-      margin-top: 20px;
-    }
-    
-    .feature {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      color: #ccc;
-    }
-    
-    .feature i {
-      color: #4CAF50;
-    }
-    
-    .history-section {
-      margin-top: 30px;
-      display: none;
-    }
-    
-    .history-title {
-      font-size: 1.2em;
-      font-weight: 600;
-      color: #fff;
-      margin-bottom: 15px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .history-list {
-      background: rgba(40, 40, 50, 0.8);
-      border-radius: 10px;
-      padding: 15px;
-      max-height: 200px;
-      overflow-y: auto;
-    }
-    
-    .history-item {
-      padding: 10px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-      color: #ccc;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .history-item:last-child {
-      border-bottom: none;
-    }
-    
-    .history-item i {
-      color: #FF0000;
-      cursor: pointer;
-    }
-    
-    @media (max-width: 600px) {
-      .container {
-        padding: 25px;
-      }
-      
-      h1 {
-        font-size: 2em;
-      }
-      
-      .format-options {
-        grid-template-columns: 1fr;
-      }
-      
-      .features {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
 </head>
 <body>
-  <div class="container">
-    <div class="logo">
-      <i class="fab fa-youtube"></i>
+
+<div class="container">
+
+  <h1>MP3 Player</h1>
+
+  <!-- ====================== -->
+  <!--  SEÇÃO 1 - YOUTUBE (agora no topo) -->
+  <!-- ====================== -->
+  <div class="section">
+    <h2>Adicionar do YouTube</h2>
+    
+    <input type="text" id="yturl" placeholder="Cole o link do YouTube aqui...">
+    <button onclick="openConverter()" class="accent">Converter & Baixar →</button>
+    
+    <div class="info">
+      Após baixar o MP3, volte aqui e adicione o arquivo na área abaixo (selecione ou arraste).
     </div>
-    
-    <h1>Conversor YouTube para MP3</h1>
-    <p class="subtitle">Cole a URL do vídeo do YouTube e converta para áudio MP3 de alta qualidade gratuitamente</p>
-    
-    <form id="form">
-      <div class="url-input-container">
-        <i class="fab fa-youtube"></i>
-        <input id="urlInput" type="text" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off" required>
-      </div>
-      
-      <div class="quality-selector">
-        <div class="quality-btn active" data-quality="320">Alta Qualidade (320kbps)</div>
-        <div class="quality-btn" data-quality="192">Qualidade Média (192kbps)</div>
-        <div class="quality-btn" data-quality="128">Qualidade Padrão (128kbps)</div>
-      </div>
-      
-      <button type="submit" class="convert-btn" id="convertBtn">
-        <i class="fas fa-file-audio"></i>
-        Converter para MP3
-      </button>
-    </form>
-    
-    <div class="loading" id="loading">
-      <div class="spinner"></div>
-      <div class="loading-text" id="loadingText">Analisando vídeo...</div>
-    </div>
-    
-    <div id="error" class="error"></div>
-    
-    <div id="result">
-      <div class="video-info">
-        <div class="video-title" id="videoTitle"></div>
-        <div class="video-details">
-          <span id="videoDuration"></span>
-          <span id="videoChannel"></span>
-          <span id="videoViews"></span>
-        </div>
-      </div>
-      
-      <div class="conversion-options">
-        <div class="options-title">
-          <i class="fas fa-sliders-h"></i>
-          Opções de Conversão
-        </div>
-        
-        <div class="format-options">
-          <div class="format-option active" data-format="mp3">
-            <div class="format-icon">
-              <i class="fas fa-file-audio"></i>
-            </div>
-            <div class="format-name">MP3</div>
-            <div class="format-desc">Áudio de alta qualidade</div>
-          </div>
-          
-          <div class="format-option" data-format="mp4">
-            <div class="format-icon">
-              <i class="fas fa-file-video"></i>
-            </div>
-            <div class="format-name">MP4</div>
-            <div class="format-desc">Vídeo completo</div>
-          </div>
-          
-          <div class="format-option" data-format="m4a">
-            <div class="format-icon">
-              <i class="fas fa-music"></i>
-            </div>
-            <div class="format-name">M4A</div>
-            <div class="format-desc">Áudio Apple</div>
-          </div>
-        </div>
-        
-        <div class="download-section">
-          <a href="#" class="download-btn" id="downloadBtn" target="_blank">
-            <i class="fas fa-download"></i>
-            Baixar Arquivo
-          </a>
-        </div>
-      </div>
-    </div>
-    
-    <div class="info-box">
-      <p><i class="fas fa-info-circle"></i> <strong>Como usar:</strong> Cole o link do vídeo do YouTube, escolha a qualidade e clique em converter.</p>
-      
-      <div class="features">
-        <div class="feature">
-          <i class="fas fa-check-circle"></i>
-          <span>Conversão rápida e gratuita</span>
-        </div>
-        <div class="feature">
-          <i class="fas fa-check-circle"></i>
-          <span>Sem limites de uso</span>
-        </div>
-        <div class="feature">
-          <i class="fas fa-check-circle"></i>
-          <span>Suporte a vídeos longos</span>
-        </div>
-        <div class="feature">
-          <i class="fas fa-check-circle"></i>
-          <span>Qualidade de áudio ajustável</span>
-        </div>
-      </div>
-    </div>
-    
-    <div class="history-section" id="historySection">
-      <div class="history-title">
-        <span>Conversões Recentes</span>
-        <button onclick="clearHistory()" style="background:none;border:none;color:#aaa;cursor:pointer;">
-          <i class="fas fa-trash"></i>
-        </button>
-      </div>
-      <div class="history-list" id="historyList"></div>
+    <div class="warning">
+      Uso pessoal • Respeite direitos autorais
     </div>
   </div>
 
-  <script>
-    // API de conversão (múltiplas opções para maior confiabilidade)
-    const CONVERSION_APIS = [
-      {
-        name: "Y2Mate",
-        url: "https://www.y2mate.com/mates/analyzeV2/ajax",
-        method: "POST"
-      },
-      {
-        name: "OnlineVideoConverter",
-        url: "https://onlinevideoconverter.pro/api/convert",
-        method: "GET"
-      },
-      {
-        name: "SaveFrom",
-        url: "https://ssyoutube.com/api/convert",
-        method: "GET"
-      }
-    ];
+  <!-- ====================== -->
+  <!--  SEÇÃO 2 - PLAYER LOCAL (agora embaixo) -->
+  <!-- ====================== -->
+  <div class="section">
+    <h2>Player Local</h2>
+    
+    <input type="file" id="files" accept="audio/mpeg,audio/mp3" multiple webkitdirectory directory>
+    <p style="font-size:0.85em; color:#888; text-align:center; margin:8px 0;">
+      Selecione arquivos ou pasta inteira
+    </p>
 
-    // Variáveis globais
-    let currentVideoId = '';
-    let currentQuality = '320';
-    let currentFormat = 'mp3';
-    let conversionHistory = JSON.parse(localStorage.getItem('youtube_conversions')) || [];
+    <audio id="audio" controls></audio>
 
-    // Elementos DOM
-    const form = document.getElementById('form');
-    const urlInput = document.getElementById('urlInput');
-    const convertBtn = document.getElementById('convertBtn');
-    const loading = document.getElementById('loading');
-    const loadingText = document.getElementById('loadingText');
-    const error = document.getElementById('error');
-    const result = document.getElementById('result');
-    const videoTitle = document.getElementById('videoTitle');
-    const videoDuration = document.getElementById('videoDuration');
-    const videoChannel = document.getElementById('videoChannel');
-    const videoViews = document.getElementById('videoViews');
-    const downloadBtn = document.getElementById('downloadBtn');
-    const historySection = document.getElementById('historySection');
-    const historyList = document.getElementById('historyList');
+    <div class="controls">
+      <button onclick="prev()">⏮ Anterior</button>
+      <button onclick="next()">Próxima ⏭</button>
+      <button id="shuffleBtn" onclick="toggleShuffle()">🔀 Shuffle</button>
+    </div>
 
-    // Inicialização
-    document.addEventListener('DOMContentLoaded', () => {
-      updateHistoryDisplay();
-      
-      // Configurar botões de qualidade
-      document.querySelectorAll('.quality-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.querySelectorAll('.quality-btn').forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          currentQuality = btn.dataset.quality;
-        });
-      });
-      
-      // Configurar botões de formato
-      document.querySelectorAll('.format-option').forEach(option => {
-        option.addEventListener('click', () => {
-          document.querySelectorAll('.format-option').forEach(o => o.classList.remove('active'));
-          option.classList.add('active');
-          currentFormat = option.dataset.format;
-          updateDownloadButton();
-        });
-      });
-    });
+    <ul id="playlist"></ul>
+  </div>
 
-    // Extrair ID do vídeo do YouTube
-    function extractVideoId(url) {
-      const patterns = [
-        /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
-        /youtube\.com\/watch\?.*v=([a-zA-Z0-9_-]{11})/,
-        /youtu\.be\/([a-zA-Z0-9_-]{11})/
-      ];
-      
-      for (const pattern of patterns) {
-        const match = url.match(pattern);
-        if (match && match[1]) {
-          return match[1];
-        }
-      }
-      
-      return null;
-    }
+</div>
 
-    // Validar URL do YouTube
-    function isValidYouTubeUrl(url) {
-      const patterns = [
-        /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/,
-        /^(https?:\/\/)?(www\.)?youtube\.com\/watch\?v=.+/,
-        /^(https?:\/\/)?(www\.)?youtu\.be\/.+/
-      ];
-      
-      return patterns.some(pattern => pattern.test(url));
-    }
 
-    // Obter informações do vídeo
-    async function getVideoInfo(videoId) {
-      try {
-        // Usar a API do YouTube (requer chave API no ambiente de produção)
-        // Para demonstração, vamos usar uma abordagem alternativa
-        const response = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`);
-        
-        if (!response.ok) {
-          throw new Error('Não foi possível obter informações do vídeo');
-        }
-        
-        const data = await response.json();
-        
-        return {
-          title: data.title || 'Vídeo do YouTube',
-          author: data.author_name || 'Desconhecido',
-          thumbnail: data.thumbnail_url || '',
-          duration: 'Duração não disponível',
-          views: 'Visualizações não disponíveis'
-        };
-      } catch (err) {
-        console.error('Erro ao obter informações:', err);
-        return {
-          title: 'Vídeo do YouTube',
-          author: 'Desconhecido',
-          thumbnail: '',
-          duration: 'Duração não disponível',
-          views: 'Visualizações não disponíveis'
-        };
-      }
-    }
 
-    // Converter vídeo
-    async function convertVideo(videoId, quality, format) {
-      loadingText.textContent = 'Convertendo vídeo...';
-      
-      // Tentar múltiplas APIs até uma funcionar
-      for (const api of CONVERSION_APIS) {
-        try {
-          const result = await tryConversionApi(api, videoId, quality, format);
-          if (result) return result;
-        } catch (err) {
-          console.log(`API ${api.name} falhou:`, err);
-          continue;
-        }
-      }
-      
-      // Se todas as APIs falharem, usar API pública alternativa
-      return await fallbackConversion(videoId, quality, format);
-    }
-
-    // Tentar uma API de conversão
-    async function tryConversionApi(api, videoId, quality, format) {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 10000);
-      
-      try {
-        let response;
-        
-        if (api.method === "POST") {
-          const formData = new FormData();
-          formData.append("url", `https://www.youtube.com/watch?v=${videoId}`);
-          formData.append("format", format);
-          formData.append("quality", quality);
-          
-          response = await fetch(api.url, {
-            method: "POST",
-            body: formData,
-            signal: controller.signal
-          });
-        } else {
-          response = await fetch(`${api.url}?url=https://www.youtube.com/watch?v=${videoId}&format=${format}&quality=${quality}`, {
-            signal: controller.signal
-          });
-        }
-        
-        clearTimeout(timeout);
-        
-        if (!response.ok) {
-          throw new Error(`API ${api.name} retornou status ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        // Verificar diferentes estruturas de resposta
-        if (data.url || data.link || data.downloadUrl) {
-          return data.url || data.link || data.downloadUrl;
-        }
-        
-        if (data.data && data.data.url) {
-          return data.data.url;
-        }
-        
-        return null;
-      } catch (err) {
-        clearTimeout(timeout);
-        throw err;
-      }
-    }
-
-    // Fallback para conversão
-    async function fallbackConversion(videoId, quality, format) {
-      // Usar serviço público como fallback
-      const publicApis = [
-        `https://api.vevioz.com/api/button/mp3/${videoId}`,
-        `https://yt5s.com/api/ajaxConvert`,
-        `https://loader.to/api/button/?url=https://www.youtube.com/watch?v=${videoId}&f=${format}&q=${quality}`
-      ];
-      
-      for (const apiUrl of publicApis) {
-        try {
-          const response = await fetch(apiUrl);
-          if (response.ok) {
-            const data = await response.json();
-            if (data.url || data.dlink) {
-              return data.url || data.dlink;
-            }
-          }
-        } catch (err) {
-          console.log(`Fallback API falhou:`, err);
-        }
-      }
-      
-      // Último recurso: Redirecionar para site de conversão
-      return `https://ytmp3.cc/api/v1/download?url=https://www.youtube.com/watch?v=${videoId}&format=${format}&quality=${quality}`;
-    }
-
-    // Atualizar botão de download
-    function updateDownloadButton() {
-      const formatNames = {
-        'mp3': 'MP3',
-        'mp4': 'MP4',
-        'm4a': 'M4A'
-      };
-      
-      downloadBtn.innerHTML = `
-        <i class="fas fa-download"></i>
-        Baixar ${formatNames[currentFormat]} (${currentQuality}kbps)
-      `;
-    }
-
-    // Adicionar ao histórico
-    function addToHistory(videoInfo, downloadUrl) {
-      const historyItem = {
-        id: Date.now(),
-        title: videoInfo.title,
-        videoId: currentVideoId,
-        format: currentFormat,
-        quality: currentQuality,
-        downloadUrl: downloadUrl,
-        date: new Date().toLocaleString('pt-BR')
-      };
-      
-      conversionHistory.unshift(historyItem);
-      
-      // Manter apenas os últimos 10 itens
-      if (conversionHistory.length > 10) {
-        conversionHistory = conversionHistory.slice(0, 10);
-      }
-      
-      localStorage.setItem('youtube_conversions', JSON.stringify(conversionHistory));
-      updateHistoryDisplay();
-    }
-
-    // Atualizar exibição do histórico
-    function updateHistoryDisplay() {
-      if (conversionHistory.length === 0) {
-        historySection.style.display = 'none';
-        return;
-      }
-      
-      historySection.style.display = 'block';
-      historyList.innerHTML = '';
-      
-      conversionHistory.forEach(item => {
-        const historyItem = document.createElement('div');
-        historyItem.className = 'history-item';
-        historyItem.innerHTML = `
-          <span title="${item.title}">${item.title.substring(0, 30)}${item.title.length > 30 ? '...' : ''}</span>
-          <div>
-            <span style="font-size: 0.8em; color: #888;">${item.format.toUpperCase()} ${item.quality}kbps</span>
-            <i class="fas fa-redo-alt" onclick="convertFromHistory('${item.videoId}', '${item.title}')" style="margin-left: 10px;" title="Converter novamente"></i>
-          </div>
-        `;
-        historyList.appendChild(historyItem);
-      });
-    }
-
-    // Converter do histórico
-    function convertFromHistory(videoId, title) {
-      urlInput.value = `https://www.youtube.com/watch?v=${videoId}`;
-      videoTitle.textContent = title;
-      processConversion();
-    }
-
-    // Limpar histórico
-    function clearHistory() {
-      if (confirm('Tem certeza que deseja limpar o histórico de conversões?')) {
-        conversionHistory = [];
-        localStorage.removeItem('youtube_conversions');
-        updateHistoryDisplay();
-      }
-    }
-
-    // Processar conversão
-    async function processConversion() {
-      try {
-        // Obter informações do vídeo
-        const videoInfo = await getVideoInfo(currentVideoId);
-        
-        // Atualizar informações na interface
-        videoTitle.textContent = videoInfo.title;
-        videoDuration.innerHTML = `<i class="far fa-clock"></i> ${videoInfo.duration}`;
-        videoChannel.innerHTML = `<i class="fas fa-user"></i> ${videoInfo.author}`;
-        videoViews.innerHTML = `<i class="far fa-eye"></i> ${videoInfo.views}`;
-        
-        // Converter vídeo
-        const downloadUrl = await convertVideo(currentVideoId, currentQuality, currentFormat);
-        
-        // Configurar botão de download
-        downloadBtn.href = downloadUrl;
-        downloadBtn.download = `${videoInfo.title.substring(0, 50)}.${currentFormat}`;
-        updateDownloadButton();
-        
-        // Mostrar resultado
-        loading.style.display = 'none';
-        result.style.display = 'block';
-        
-        // Adicionar ao histórico
-        addToHistory(videoInfo, downloadUrl);
-        
-      } catch (err) {
-        console.error('Erro na conversão:', err);
-        loading.style.display = 'none';
-        showError(`Erro na conversão: ${err.message}. Tente novamente ou use outro vídeo.`);
-      }
-    }
-
-    // Mostrar erro
-    function showError(message) {
-      error.textContent = message;
-      error.style.display = 'block';
-      setTimeout(() => {
-        error.style.display = 'none';
-      }, 5000);
-    }
-
-    // Evento do formulário
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      const url = urlInput.value.trim();
-      
-      if (!url) {
-        showError('Por favor, cole a URL do vídeo do YouTube');
-        return;
-      }
-      
-      if (!isValidYouTubeUrl(url)) {
-        showError('URL do YouTube inválida. Use um link como: https://www.youtube.com/watch?v=... ou https://youtu.be/...');
-        return;
-      }
-      
-      // Extrair ID do vídeo
-      currentVideoId = extractVideoId(url);
-      
-      if (!currentVideoId) {
-        showError('Não foi possível identificar o vídeo. Verifique a URL.');
-        return;
-      }
-      
-      // Desabilitar botão e mostrar loading
-      convertBtn.disabled = true;
-      loading.style.display = 'block';
-      result.style.display = 'none';
-      error.style.display = 'none';
-      
-      try {
-        await processConversion();
-      } catch (err) {
-        showError(`Erro: ${err.message}`);
-      } finally {
-        convertBtn.disabled = false;
-      }
-    });
-
-    // Detectores de colagem automática
-    urlInput.addEventListener('paste', (e) => {
-      setTimeout(() => {
-        const url = urlInput.value.trim();
-        if (isValidYouTubeUrl(url)) {
-          // Validar automaticamente se for URL do YouTube
-          const videoId = extractVideoId(url);
-          if (videoId) {
-            currentVideoId = videoId;
-          }
-        }
-      }, 100);
-    });
-
-    // Exemplos de URL para facilitar teste
-    urlInput.addEventListener('focus', () => {
-      if (!urlInput.value) {
-        urlInput.placeholder = 'Ex: https://www.youtube.com/watch?v=dQw4w9WgXcQ';
-      }
-    });
-
-    // Inicializar histórico
-    updateHistoryDisplay();
-  </script>
 </body>
 </html>
+
+[CSS]
+:root {
+      --bg: #0f0f0f;
+      --card: #1e1e1e;
+      --accent: #0a84ff;
+      --text: #e0e0e0;
+      --gray: #888;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, sans-serif;
+      min-height: 100vh;
+      padding: 20px 10px;
+    }
+    .container {
+      max-width: 420px;
+      margin: 0 auto;
+    }
+    h1, h2 {
+      text-align: center;
+      margin-bottom: 15px;
+      font-size: 1.4em;
+    }
+    .section {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 25px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+    input[type="text"], input[type="file"] {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid #444;
+      background: #2a2a2a;
+      color: white;
+      font-size: 15px;
+    }
+    button {
+      padding: 12px 20px;
+      margin: 6px;
+      border: none;
+      border-radius: 8px;
+      background: #333;
+      color: white;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    button:hover { background: #444; }
+    button.active, button.accent {
+      background: var(--accent);
+    }
+    #playlist {
+      list-style: none;
+      max-height: 220px;
+      overflow-y: auto;
+      margin: 15px 0;
+    }
+    #playlist li {
+      padding: 10px;
+      cursor: pointer;
+      border-bottom: 1px solid #333;
+    }
+    #playlist li.active {
+      background: #2a2a2a;
+      color: var(--accent);
+    }
+    audio {
+      width: 100%;
+      margin: 15px 0;
+    }
+    .controls {
+      text-align: center;
+    }
+    .info, .warning {
+      font-size: 0.85em;
+      color: #aaa;
+      text-align: center;
+      margin-top: 12px;
+      line-height: 1.4;
+    }
+    .warning { color: #ff9800; }
+    @media (max-width: 500px) {
+      .section { padding: 15px; }
+      button { width: 100%; margin: 8px 0; }
+    }
+
+[JS]
+// ───────────────────────────────────────────────
+//              PLAYER LOCAL
+// ───────────────────────────────────────────────
+let audio = document.getElementById('audio');
+let fileInput = document.getElementById('files');
+let playlistEl = document.getElementById('playlist');
+let shuffleBtn = document.getElementById('shuffleBtn');
+
+let files = [];
+let order = [];
+let currentIndex = 0;
+let shuffle = false;
+
+fileInput.onchange = () => {
+  files = [...fileInput.files].filter(f => f.type.startsWith('audio/'));
+  order = files.map((_,i) => i);
+  renderPlaylist();
+  loadLastPosition() || play(0);
+};
+
+function renderPlaylist() {
+  playlistEl.innerHTML = '';
+  order.forEach((fileIndex, pos) => {
+    let li = document.createElement('li');
+    li.textContent = files[fileIndex].name;
+    li.onclick = () => play(pos);
+    playlistEl.appendChild(li);
+  });
+}
+
+function play(pos) {
+  if (pos < 0 || pos >= order.length) return;
+  
+  currentIndex = pos;
+  let file = files[order[pos]];
+  audio.src = URL.createObjectURL(file);
+  audio.play().catch(e => console.log("Erro play:", e));
+  
+  saveLastPosition();
+  highlightCurrent();
+}
+
+function next() {
+  let nextPos = currentIndex + 1;
+  if (nextPos >= order.length) nextPos = 0;
+  play(nextPos);
+}
+
+function prev() {
+  let prevPos = currentIndex - 1;
+  if (prevPos < 0) prevPos = order.length - 1;
+  play(prevPos);
+}
+
+audio.onended = next;
+
+function highlightCurrent() {
+  [...playlistEl.children].forEach((li,i) => {
+    li.classList.toggle('active', i === currentIndex);
+  });
+}
+
+function toggleShuffle() {
+  shuffle = !shuffle;
+  shuffleBtn.classList.toggle('active', shuffle);
+
+  if (shuffle) {
+    order.sort(() => Math.random() - 0.5);
+  } else {
+    order = files.map((_,i)=>i);
+  }
+  
+  renderPlaylist();
+  play(0);
+}
+
+function saveLastPosition() {
+  try {
+    localStorage.setItem('lastPlayedIndex', currentIndex);
+  } catch(e){}
+}
+
+function loadLastPosition() {
+  try {
+    let saved = localStorage.getItem('lastPlayedIndex');
+    if (saved !== null) {
+      let idx = Number(saved);
+      if (idx >= 0 && idx < order.length) {
+        play(idx);
+        return true;
+      }
+    }
+  } catch(e){}
+  return false;
+}
+
+// ───────────────────────────────────────────────
+//              YOUTUBE → MP3 (externo)
+// ───────────────────────────────────────────────
+function openConverter() {
+  const url = document.getElementById('yturl').value.trim();
+  if (!url) {
+    alert("Cole um link do YouTube primeiro.");
+    return;
+  }
+
+  if (!url.includes('youtube.com') && !url.includes('youtu.be')) {
+    alert("Link não parece ser do YouTube.");
+    return;
+  }
+
+  // Conversor mais recomendado em 2026 (ad-free, safe, 320kbps)
+  const converterUrl = `https://cnvmp3.com/?url=${encodeURIComponent(url)}`;
+
+  window.open(converterUrl, '_blank');
+  
+  alert("1. O conversor abrirá em outra aba\n2. Baixe o MP3 (escolha 320kbps se disponível)\n3. Volte aqui e adicione o arquivo baixado no input abaixo");
+}
